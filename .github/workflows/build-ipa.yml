@@ -1,0 +1,37 @@
+name: Build Claude Legacy IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Fix GitHub submodule URL
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init --recursive
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build IPA
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Check IPA
+        run: |
+          ls -lh build/output/
+          test -f build/output/ClaudeLegacy.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClaudeLegacy-CameraFix
+          path: build/output/ClaudeLegacy.ipa
+          if-no-files-found: error
